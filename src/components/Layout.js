@@ -13,9 +13,8 @@ const Layout = () => {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              <Link className="nav-link" to="/">Home</Link>
+              <Link className="nav-link" to="/">Bookstore</Link>
               <Link className="nav-link" to="/temperature">Temperature</Link>
-              <Link className="nav-link">Simple Db</Link>
             </Nav>
           </Navbar.Collapse>
         </Container>
