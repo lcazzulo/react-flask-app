@@ -9,9 +9,10 @@ from book import Book
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(app, logger=True, engineio_logger=True, cors_allowed_origins="*")
 #socketio = SocketIO(app, message_queue='amqp://')
-db_path = '/home/luca/react-flask-app/db/test.db'
+#db_path = '/home/luca/react-flask-app/db/test.db'
+db_path = 'C:\\dev\\react-flask-app\\db\\test.db'
 
 @app.route('/api/time')
 def get_current_time():
