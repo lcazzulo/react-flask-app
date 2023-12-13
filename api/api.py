@@ -1,6 +1,6 @@
 import time
 from flask import Flask
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room, send
 import json
 import sqlite3
 import jsonpickle
@@ -10,9 +10,10 @@ from book import Book
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
+#socketio = SocketIO(app, message_queue='amqp://')
 db_path = '/home/luca/react-flask-app/db/test.db'
 
-@app.route('/time')
+@app.route('/api/time')
 def get_current_time():
     return {'time': time.time()}
 
@@ -36,6 +37,18 @@ def handle_message(data):
     obj['t'] = float(data)
     emit('foo', obj)
 
+
+@socketio.on('temperature')
+def handle_logs(data):
+    print('temperature')
+    emit('temperature', data, to='temperature')
+    #send(data, to='temperature')
+    
+@socketio.on('join')
+def on_join(data):
+    print('join room')
+    join_room('temperature')
+    #send(username + ' has entered the room.', to=room)
 
 if __name__ == '__main__':
     socketio.run(app)

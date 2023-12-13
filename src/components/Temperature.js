@@ -16,15 +16,12 @@ const dateFormatter = date => {
 const Temperature = () => {
 
     const [isConnected, setIsConnected] = useState(socket.connected);
-    const [temperatures, setTemperatureEvents] = useState([/*{
-        x: 1702386980000,
-        t: 25,
-       
-      },*/]);
+    const [temperatures, setTemperatureEvents] = useState([]);
 
   useEffect(() => {
     function onConnect() {
       setIsConnected(true);
+      socket.timeout(5000).emit('join', '')
     }
 
     function onDisconnect() {
@@ -38,12 +35,12 @@ const Temperature = () => {
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
-    socket.on('foo', onTemperatureEvent);
+    socket.on('temperature', onTemperatureEvent);
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
-      socket.off('foo', onTemperatureEvent);
+      socket.off('temperature', onTemperatureEvent);
     };
   }, []);
 
@@ -56,9 +53,11 @@ const Temperature = () => {
         <div>
             <h1>Temperature</h1>
             <ConnectionState isConnected={ isConnected } />
+            {/*
             <Events events={ temperatures } />
             <ConnectionManager />
             <MyForm />
+            */}
 
             <GaugeChart id="gauge-chart5"
                 nrOfLevels={420}
