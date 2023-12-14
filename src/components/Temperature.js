@@ -19,8 +19,19 @@ const Temperature = () => {
     const [temperatures, setTemperatureEvents] = useState([]);
 
   useEffect(() => {
+    
+    console.log("useEffect")
+    
+    fetch('/api/get_temperatures').then(res => res.json()).then(data => {
+      setTemperatureEvents(data);
+    });
+    
+    
+    socket.timeout(5000).emit('join', '')
+
     function onConnect() {
       setIsConnected(true);
+      console.log('join')
       socket.timeout(5000).emit('join', '')
     }
 

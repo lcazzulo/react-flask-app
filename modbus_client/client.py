@@ -1,30 +1,3 @@
-import time
-import socketio
-
-
-def run_client():
-    with socketio.SimpleClient() as sio:
-        sio.connect('http://localhost:3000')
-        print('my sid is', sio.sid)
-        print('my transport is', sio.transport)
-        #sio.emit('join', '')
-
-        t = 0
-        while True:
-            sio.emit('temperature', {'x': int(time.time() * 1000), 't': t})
-            print(t)       
-            t += 10
-            if t == 100:
-                t = 0
-            time.sleep(1)
-
-
-if __name__ == '__main__':
-    run_client()
-    
-    
-'''    
-
 import collections
 from pymodbus.pdu import ModbusRequest
 from pymodbus.client import ModbusSerialClient as ModbusClient
@@ -33,10 +6,9 @@ from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 import time
 import socketio
-
-
 from multiprocessing import Process,Array,Value,Manager
 from GZ900 import GZ900
+
 Controller = GZ900(1)
 PARAM=Array('i', [0,0,0,0,0,0,0,0,0,0])
 
@@ -106,5 +78,3 @@ def TASK_MODBUS(T_CONT,PARAM):
 
 if __name__ == '__main__':
    TASK_MODBUS(Controller,PARAM)    
-
-'''
