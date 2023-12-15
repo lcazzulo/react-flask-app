@@ -11,8 +11,6 @@ from temperature_sample import TemperatureSample
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, logger=True, engineio_logger=True, cors_allowed_origins="*")
-#socketio = SocketIO(app, message_queue='amqp://')
-#db_path = '/home/luca/react-flask-app/db/test.db'
 db_path = 'C:\\dev\\react-flask-app\\db\\test.db'
 
 @app.route('/api/time')
@@ -30,7 +28,7 @@ def get_books():
             ret.append(Book(row[0], row[1], row[2], row[3], row[4]))
         return jsonpickle.encode(ret)
     
-@app.route('/api/add_book', methods = ['POST'])
+@app.route('/api/add_book', methods = ['PUT'])
 def add_book():
     req_json = request.get_json()
     author = req_json['author']
