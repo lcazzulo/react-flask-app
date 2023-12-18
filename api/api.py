@@ -1,7 +1,6 @@
 import time
 from flask import Flask, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
-import json
 import sqlite3
 import jsonpickle
 

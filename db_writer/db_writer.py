@@ -26,6 +26,9 @@ def run_app():
     def connect_error():
         print("The connection failed!")
 
+    @sio.event
+    def disconnect():
+        print("I'm disconnected!")
 
     @sio.on('temperature')
     def on_message(data):

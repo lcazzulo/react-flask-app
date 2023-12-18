@@ -1,12 +1,10 @@
 import collections
-from pymodbus.pdu import ModbusRequest
 from pymodbus.client import ModbusSerialClient as ModbusClient
-from pymodbus.transaction import ModbusRtuFramer
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 import time
 import socketio
-from multiprocessing import Process,Array,Value,Manager
+from multiprocessing import Array
 from GZ900 import GZ900
 
 Controller = GZ900(1)
@@ -14,7 +12,7 @@ PARAM=Array('i', [0,0,0,0,0,0,0,0,0,0])
 
 d = collections.deque(maxlen=10)
 
-def CALCOLA_INT16(val):         
+def CALCOLA_INT32(val):         
    my_bytes1 = bytes([0x00, 0x00])
    my_bytes2 = bytes([0x00, 0x00])
    my_bytes1  = val[0].to_bytes(2, 'big')
@@ -25,16 +23,30 @@ def TASK_MODBUS(T_CONT,PARAM):
     
    print("TASK MODBUS-RTU")
 
-   sio = socketio.SimpleClient()
-   sio.connect('http://localhost:3000')
+   sio = socketio.Client()
+   sio.connect('http://localhost:5000')
+
+   @sio.event
+   def connect():
+      print("I'm connected!")
+
+   @sio.event
+   def connect_error(data):
+      print("The connection failed!")
+
+   @sio.event
+   def disconnect():
+     print("I'm disconnected!")
       
    client = ModbusClient(method='rtu', port="COM3", baudrate=115200, stopbits = 1, parity='N', timeout=0.3)
    connection = client.connect()     
-   cont = 0
    last_median = 0.0
    
-   while True:       
-      #connection = client.connect()      
+   while True:
+      #if is_connected == False:
+      #   time.sleep(1)
+      #   sio.connect('http://localhost:3000', transports=['websocket'])
+      #   continue       
       for k,add in enumerate(T_CONT.ADDRESSES):     
          #print("GZ900 n°",(k+1))
          for key in T_CONT.READ_REGS:                    
@@ -42,7 +54,7 @@ def TASK_MODBUS(T_CONT,PARAM):
                read_vals = client.read_holding_registers(T_CONT.READ_REGS[key][0], 2, add) # start_address, count, slave_id   
                gg = read_vals.registers                    
                decoder = BinaryPayloadDecoder.fromRegisters(gg, byteorder=Endian.BIG, wordorder=Endian.BIG)                                      
-               res = CALCOLA_INT16(gg)
+               res = CALCOLA_INT32(gg)
                T_CONT.READ_REGS[key][k+1] = res               
                #print("R  :",key,"->",res)               
             except:    
@@ -64,7 +76,7 @@ def TASK_MODBUS(T_CONT,PARAM):
                read_vals  = client.read_holding_registers(T_CONT.WRITE_REGS[key][0], 2, add) # start_address, count, slave_id      
                gg = read_vals.registers                                     
                decoder = BinaryPayloadDecoder.fromRegisters(gg, byteorder=Endian.BIG, wordorder=Endian.BIG)                                          
-               res = CALCOLA_INT16(gg)
+               res = CALCOLA_INT32(gg)
                T_CONT.WRITE_REGS[key][k+1] = res               
                #print("R/W:",key,"->",res)
             except:
