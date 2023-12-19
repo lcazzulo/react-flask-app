@@ -1,13 +1,14 @@
-
-
 class GZ900:
 
-    addr = 0
+    
     ADDRESSES = [ 1 ]
+    #ADDRESSES = [ 1, 3, 5, 7]
 
     READ_REGS  = {
         "Comprehensive event state" : [ 0x2C, -1, 0, 0, 0 ],
+        # temperature read
         "Input 1_Measured value (PV)" : [ 0x00, -1, 0, 0, 0 ],
+        # temperature setpoint
         "Input 1_Set value (SV) monitor": [ 0x02, -1, 0, 0, 0 ],
         "DO state monitor" : [ 0x56, -1, 0, 0, 0 ],
         "Memory area transfer" : [ 0x64, -1, 0, 0, 0 ]
@@ -23,6 +24,4 @@ class GZ900:
     }
    
     
-    def __init__(self,address):
-        self.addr= 1
-    
+    #def __init__(self):

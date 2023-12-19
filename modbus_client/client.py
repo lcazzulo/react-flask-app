@@ -6,9 +6,10 @@ import time
 import socketio
 from multiprocessing import Array
 from GZ900 import GZ900
+from THVA1 import THVA1
 
-Controller = GZ900(1)
-PARAM=Array('i', [0,0,0,0,0,0,0,0,0,0])
+Thermal_controller = GZ900()
+Power_controller = THVA1()
 
 d = collections.deque(maxlen=10)
 
@@ -19,7 +20,7 @@ def CALCOLA_INT32(val):
    my_bytes2  = val[1].to_bytes(2, 'big')          
    return int.from_bytes(my_bytes1+my_bytes2, byteorder='big', signed=True)
 
-def TASK_MODBUS(T_CONT,PARAM):
+def TASK_MODBUS(thermal_controller, power_controller):
     
    print("TASK MODBUS-RTU")
 
@@ -38,7 +39,7 @@ def TASK_MODBUS(T_CONT,PARAM):
    def disconnect():
      print("I'm disconnected!")
       
-   client = ModbusClient(method='rtu', port="COM3", baudrate=115200, stopbits = 1, parity='N', timeout=0.3)
+   client = ModbusClient(method='rtu', port="COM3", baudrate=9600, stopbits = 1, parity='N', timeout=0.3)
    connection = client.connect()     
    last_median = 0.0
    
@@ -47,21 +48,21 @@ def TASK_MODBUS(T_CONT,PARAM):
       #   time.sleep(1)
       #   sio.connect('http://localhost:3000', transports=['websocket'])
       #   continue       
-      for k,add in enumerate(T_CONT.ADDRESSES):     
+      for k,add in enumerate(thermal_controller.ADDRESSES):     
          #print("GZ900 n°",(k+1))
-         for key in T_CONT.READ_REGS:                    
+         for key in thermal_controller.READ_REGS:                    
             try:
-               read_vals = client.read_holding_registers(T_CONT.READ_REGS[key][0], 2, add) # start_address, count, slave_id   
+               read_vals = client.read_holding_registers(thermal_controller.READ_REGS[key][0], 2, add) # start_address, count, slave_id   
                gg = read_vals.registers                    
                decoder = BinaryPayloadDecoder.fromRegisters(gg, byteorder=Endian.BIG, wordorder=Endian.BIG)                                      
                res = CALCOLA_INT32(gg)
-               T_CONT.READ_REGS[key][k+1] = res               
-               #print("R  :",key,"->",res)               
+               thermal_controller.READ_REGS[key][k+1] = res               
+               print("R T  :",key,"->",res)               
             except:    
                print("Error during read register : ",k)
             
          #print("temp = " + str(T_CONT.READ_REGS["Input 1_Measured value (PV)"][1]))
-         d.append(T_CONT.READ_REGS["Input 1_Measured value (PV)"][1])
+         d.append(thermal_controller.READ_REGS["Input 1_Measured value (PV)"][1])
          median = sum(d) / len(d)
          #print("Median = " + str(median))
          if median != last_median:  
@@ -71,22 +72,36 @@ def TASK_MODBUS(T_CONT,PARAM):
             sio.emit('temperature', {'x': int(time.time() * 1000), 't': median})
 
 
-         for key in T_CONT.WRITE_REGS:          
+         for key in thermal_controller.WRITE_REGS:          
             try:
-               read_vals  = client.read_holding_registers(T_CONT.WRITE_REGS[key][0], 2, add) # start_address, count, slave_id      
+               read_vals  = client.read_holding_registers(thermal_controller.WRITE_REGS[key][0], 2, add) # start_address, count, slave_id      
                gg = read_vals.registers                                     
                decoder = BinaryPayloadDecoder.fromRegisters(gg, byteorder=Endian.BIG, wordorder=Endian.BIG)                                          
                res = CALCOLA_INT32(gg)
-               T_CONT.WRITE_REGS[key][k+1] = res               
-               #print("R/W:",key,"->",res)
+               thermal_controller.WRITE_REGS[key][k+1] = res               
+               print("R/W T:",key,"->",res)
             except:
                print("Error during write register : ",k)      
 
-         #print("--------------------------------------------------------------------------------")             
+      
+      for k,add in enumerate(power_controller.ADDRESSES):     
+         #print("GZ900 n°",(k+1))
+         for key in power_controller.READ_REGS:                    
+            try:
+               read_vals = client.read_holding_registers(power_controller.READ_REGS[key][0], 1, add) # start_address, count, slave_id   
+               res = read_vals.registers                    
+               power_controller.READ_REGS[key][k+1] = res               
+               print("R P:",key,"->",res)               
+            except:    
+               print("Error during read register : ",k)
+      
+      
+      print("--------------------------------------------------------------------------------")  
+              
           
       #client.close()      
        
-      #time.sleep(1)
+      time.sleep(2)
 
 if __name__ == '__main__':
-   TASK_MODBUS(Controller,PARAM)    
+   TASK_MODBUS(Thermal_controller, Power_controller)    
